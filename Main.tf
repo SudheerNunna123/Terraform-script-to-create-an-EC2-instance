@@ -1,6 +1,17 @@
-# Create an S3 bucket for storing Terraform state
+provider "aws" {
+  region = "your_aws_region"
+}
+
+resource "aws_instance" "example" {
+  ami           = "your_ami_id"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "ExampleInstance"
+  }
+}
+
 resource "aws_s3_bucket" "terraform_state_bucket" {
-  bucket = "Terraform State Bucket"
+  bucket = "your_bucket_name"
   acl    = "private"
 
   versioning {
@@ -12,9 +23,8 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
   }
 }
 
-# Create a DynamoDB table for state locking
 resource "aws_dynamodb_table" "terraform_lock_table" {
-  name           = "terraform-state-lock"
+  name           = "terraform-lock"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "LockID"
 
@@ -24,21 +34,11 @@ resource "aws_dynamodb_table" "terraform_lock_table" {
   }
 }
 
-# Configure Terraform backend to use S3 and DynamoDB
 terraform {
   backend "s3" {
     bucket         = aws_s3_bucket.terraform_state_bucket.bucket
     key            = "terraform.tfstate"
-    region         = "us-east-1"
+    region         = "your_aws_region"
     dynamodb_table = aws_dynamodb_table.terraform_lock_table.name
-  }
-}
-
-# Define EC2 instance
-resource "aws_instance" "example" {
-  ami           = "ami-830c94e3"
-  instance_type = "t2.micro"
-  tags = {
-    Name = "Terraform"
   }
 }
